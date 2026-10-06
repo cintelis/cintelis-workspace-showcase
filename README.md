@@ -28,14 +28,32 @@ isolated tenants who see their projects, roadmap, documents, contract and invoic
 - **Documentation that stays current.** Architecture diagrams below are editable draw.io files
   generated from specs, so they are redrawn rather than left to rot.
 
-<!--
 ## Screenshots
 
-| | |
+All data below is fictional: a demo tenant, "Brightwater Advisory", running in the production app.
+
+**Deals pipeline** — open pipeline value, stage columns with totals, owners and close dates.
+
+![Deals pipeline](assets/screenshots/deals.png)
+
+| Contact record | Sales workspace |
 |---|---|
-| ![Deals board](assets/screenshots/deals.png) | ![Roadmap](assets/screenshots/roadmap.png) |
-| ![Docs wiki](assets/screenshots/docs.png) | ![Customer billing with Xero invoices](assets/screenshots/billing.png) |
--->
+| ![Contact record with timeline, tasks, deal and company](assets/screenshots/contact.png) | ![Sales workspace with tasks, pipeline and guided actions](assets/screenshots/workspace.png) |
+| Timeline of calls, meetings and emails beside the contact's deals, company and open tasks. | What to do today: task queues, pipeline at a glance and suggestions from the data. |
+
+| CRM tasks | Sprint board |
+|---|---|
+| ![CRM tasks](assets/screenshots/tasks.png) | ![Sprint board](assets/screenshots/board.png) |
+| Calls, emails, meetings and to-dos with overdue, today and upcoming views. | Jira-style board for the active sprint. |
+
+**Roadmap** — WBS with phases that roll up their tasks' dates and hours, beside a draggable Gantt.
+
+![Roadmap: WBS and Gantt](assets/screenshots/roadmap.png)
+
+**Customer billing** — what a client sees: their contract, signed documents, and invoices synced from
+Xero (paid, awaiting payment, overdue) with the PDF previewed in place.
+
+![Customer Contract & Billing with Xero invoices](assets/screenshots/billing.png)
 
 ---
 
