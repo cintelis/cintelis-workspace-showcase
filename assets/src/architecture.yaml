@@ -1,0 +1,51 @@
+title: Cintelis Workspace — platform architecture
+subtitle: One Cloudflare Worker serves the SPA, the session API, the token API and the cron jobs
+zones:
+  - {id: hosts, label: Workers custom domains (cintelis.ai only), x: 40, y: 230, w: 1010, h: 150, colour: grey}
+  - {id: worker, label: "Cloudflare Worker  ·  cintelis-workspace", x: 40, y: 420, w: 1360, h: 300, colour: blue}
+  - {id: bind, label: Cloudflare bindings, x: 40, y: 760, w: 1090, h: 170, colour: amber}
+  - {id: ext, label: External services, x: 1170, y: 760, w: 230, h: 440, colour: grey}
+nodes:
+  - {id: users, label: Browser users, sub: Cintelis staff + customer tenants, kind: actor, x: 280, y: 100, w: 220}
+  - {id: apic, label: API clients, sub: lead sources · docs publishing, kind: actor, x: 580, y: 100, w: 220}
+  - {id: cron, label: Cron trigger, sub: "*/5 * * * *", kind: worker, x: 1200, y: 100, w: 180}
+
+  - {id: hproj, label: projects.cintelis.ai, sub: app · SPA · session API, kind: ui, zone: hosts, x: 280, y: 290, w: 220}
+  - {id: hapi, label: api.cintelis.ai, sub: "/v1/* only", kind: ui, zone: hosts, x: 580, y: 290, w: 220}
+
+  - {id: fetch, label: "fetch()  ·  worker.js", sub: "API host → public auth + callbacks → token / D1 session → customer scope → route()", kind: service, zone: worker, x: 80, y: 480, w: 930, h: 80}
+  - {id: sched, label: "scheduled()", sub: campaigns · LinkedIn · Xero, kind: worker, zone: worker, x: 1200, y: 480, w: 180, h: 80}
+  - {id: spa, label: Static SPA, sub: public/*.js via env.ASSETS, kind: ui, zone: worker, x: 80, y: 620, w: 200}
+  - {id: docs, label: Docs + files, sub: docs · docs-pdf · attachments, kind: service, zone: worker, x: 320, y: 620, w: 210}
+  - {id: work, label: Delivery, sub: projects · issues · sprints, kind: service, zone: worker, x: 570, y: 620, w: 200}
+  - {id: crm, label: CRM · Outreach · Billing, sub: contacts · deals · invoices, kind: service, zone: worker, x: 810, y: 620, w: 200}
+
+  - {id: kv, label: KV, sub: misc app state, kind: datastore, zone: bind, x: 80, y: 820, w: 170, h: 90}
+  - {id: br, label: Browser Rendering, sub: page → PDF, kind: external, zone: bind, x: 290, y: 830, w: 170}
+  - {id: r2, label: R2, sub: pulse-attachments, kind: datastore, zone: bind, x: 500, y: 820, w: 170, h: 90}
+  - {id: d1, label: D1, sub: outreach-db, kind: datastore, zone: bind, x: 710, y: 820, w: 170, h: 90}
+  - {id: unsub, label: KV UNSUBSCRIBES, sub: shared · read-only, kind: datastore, zone: bind, x: 920, y: 820, w: 170, h: 90}
+
+  - {id: email, label: 365soft-email-worker, sub: POST /api/send, kind: external, zone: ext, x: 1200, y: 820, w: 180}
+  - {id: li, label: LinkedIn REST API, sub: api.linkedin.com/rest, kind: external, zone: ext, x: 1200, y: 960, w: 180}
+  - {id: xero, label: Xero Accounting API, sub: invoices · contacts (read), kind: external, zone: ext, x: 1200, y: 1100, w: 180}
+edges:
+  - {from: users, to: hproj, label: HTTPS}
+  - {from: apic, to: hapi, label: Bearer API token}
+  - {from: hproj, to: fetch}
+  - {from: hapi, to: fetch}
+  - {from: cron, to: sched, label: every 5 min, style: async}
+  - {from: fetch, to: spa, label: non-API paths}
+  - {from: fetch, to: docs, label: route()}
+  - {from: fetch, to: work, label: route()}
+  - {from: fetch, to: crm, label: route()}
+  - {from: docs, to: br, label: render PDF}
+  - {from: docs, to: r2, label: files, style: data}
+  - {from: work, to: d1, label: SQL, style: data}
+  - {from: crm, to: d1, label: scoped SQL, style: data}
+  - {from: crm, to: unsub, label: read, style: data}
+  - {from: crm, to: email, label: send, exit: right, entry: left, points: [[1140, 652], [1140, 860]]}
+  - {from: sched, to: email, label: campaign sends, style: async}
+  - {from: sched, to: li, label: "publish · stats · comments", style: async, exit: right, entry: right, points: [[1430, 520], [1430, 992]]}
+  - {from: sched, to: xero, label: invoice sync, style: async, exit: right, entry: right, points: [[1470, 540], [1470, 1132]]}
+legend: true

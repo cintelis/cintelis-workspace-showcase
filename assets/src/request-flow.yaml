@@ -1,0 +1,68 @@
+title: Cintelis Workspace — request pipeline
+subtitle: The top-down if-chain in worker.js fetch(), and the cron path in scheduled()
+zones:
+  - {id: f, label: "fetch(req)  ·  first match wins", x: 40, y: 200, w: 1180, h: 1200, colour: blue}
+  - {id: s, label: "scheduled()  ·  every 5 min", x: 1260, y: 200, w: 760, h: 530, colour: amber}
+nodes:
+  - {id: req, label: Request, kind: terminal, x: 100, y: 100, w: 180, h: 56}
+  - {id: dleg, label: "Legacy host?", kind: decision, zone: f, x: 80, y: 250, w: 220, h: 100}
+  - {id: dapi, label: "api.cintelis.ai?", kind: decision, zone: f, x: 80, y: 390, w: 220, h: 100}
+  - {id: dpub, label: "Public auth path?", kind: decision, zone: f, x: 80, y: 530, w: 220, h: 100}
+  - {id: dfile, label: "Avatar, file or invoice PDF?", kind: decision, zone: f, x: 80, y: 670, w: 220, h: 100}
+  - {id: dv1, label: "/api/v1/* ?", kind: decision, zone: f, x: 80, y: 810, w: 220, h: 100}
+  - {id: dapis, label: "/api/* ?", kind: decision, zone: f, x: 80, y: 950, w: 220, h: 100}
+
+  - {id: r301, label: 301 redirect, sub: LEGACY_HOSTS · empty today, kind: step, zone: f, x: 420, y: 268, w: 220}
+  - {id: tok, label: requireApiToken, sub: "hashed · scoped · revocable", kind: security, zone: f, x: 700, y: 408, w: 200}
+  - {id: v1, label: v1 handlers, sub: docs pages · contact intake, kind: service, zone: f, x: 960, y: 408, w: 220}
+  - {id: pub, label: Auth + OAuth callbacks, sub: login · TOTP · LinkedIn · Xero, kind: service, zone: f, x: 420, y: 548, w: 220}
+  - {id: file, label: Download / preview, sub: "Bearer or ?token= (for <img>, <a>)", kind: security, zone: f, x: 420, y: 688, w: 220}
+  - {id: spa, label: Static SPA, sub: env.ASSETS.fetch(req), kind: ui, zone: f, x: 420, y: 968, w: 220}
+
+  - {id: auth, label: requireAuth, sub: D1 session · 2FA complete, kind: security, zone: f, x: 80, y: 1120, w: 220, h: 70}
+  - {id: cscope, label: enforceCustomerScope, sub: path allowlist · entity owner, kind: security, zone: f, x: 360, y: 1120, w: 230, h: 70}
+  - {id: gate, label: Feature gate, sub: role + customer features, kind: security, zone: f, x: 650, y: 1120, w: 220, h: 70}
+  - {id: route, label: "route()", sub: dispatch table, kind: service, zone: f, x: 930, y: 1120, w: 220, h: 70}
+  - {id: mod, label: worker/* handler, sub: crm · tasks · docs · …, kind: service, zone: f, x: 930, y: 1270, w: 220, h: 70}
+  - {id: scope, label: scope.js, sub: "/*SCOPE*/ customer predicate", kind: security, zone: f, x: 650, y: 1270, w: 220, h: 70}
+  - {id: d1, label: D1, sub: outreach-db, kind: datastore, zone: f, x: 380, y: 1260, w: 190, h: 90}
+
+  - {id: cron, label: Cron trigger, kind: terminal, x: 1430, y: 100, w: 180, h: 56}
+  - {id: camp, label: runScheduler, sub: campaigns + drips, kind: worker, zone: s, x: 1300, y: 280, w: 200}
+  - {id: lis, label: runLinkedInScheduler, sub: posts · stats · comments, kind: worker, zone: s, x: 1540, y: 280, w: 210}
+  - {id: email, label: 365soft-email-worker, sub: 403 if unsubscribed, kind: external, zone: s, x: 1300, y: 440, w: 200}
+  - {id: li, label: LinkedIn REST API, sub: Dev Tier 500 req/day, kind: external, zone: s, x: 1540, y: 440, w: 210}
+  - {id: xs, label: runXeroScheduler, sub: invoices every 30 min, kind: worker, zone: s, x: 1790, y: 280, w: 200}
+  - {id: xapi, label: Xero Accounting API, sub: If-Modified-Since, kind: external, zone: s, x: 1790, y: 440, w: 200}
+  - {id: xinv, label: xero_invoices, sub: per customer · scoped, kind: datastore, zone: s, x: 1800, y: 600, w: 180, h: 90}
+  - {id: log, label: sent_log, sub: sent · failed · skipped, kind: datastore, zone: s, x: 1310, y: 600, w: 180, h: 90}
+edges:
+  - {from: req, to: dleg}
+  - {from: dleg, to: dapi, label: "no"}
+  - {from: dapi, to: dpub, label: "no"}
+  - {from: dpub, to: dfile, label: "no"}
+  - {from: dfile, to: dv1, label: "no"}
+  - {from: dv1, to: dapis, label: "no"}
+  - {from: dapis, to: auth, label: "yes"}
+  - {from: dleg, to: r301, label: "yes"}
+  - {from: dapi, to: tok, label: "yes · /v1/*"}
+  - {from: tok, to: v1}
+  - {from: dpub, to: pub, label: "yes"}
+  - {from: dfile, to: file, label: "yes"}
+  - {from: dv1, to: tok, label: "yes", exit: right, entry: bottom, points: [[800, 860]]}
+  - {from: dapis, to: spa, label: "no"}
+  - {from: auth, to: cscope}
+  - {from: cscope, to: gate}
+  - {from: gate, to: route}
+  - {from: route, to: mod}
+  - {from: mod, to: scope}
+  - {from: scope, to: d1, label: SQL, style: data}
+  - {from: cron, to: camp, style: async}
+  - {from: cron, to: lis, style: async}
+  - {from: camp, to: email, label: POST /api/send}
+  - {from: lis, to: li, label: HTTPS}
+  - {from: email, to: log, label: result, style: data}
+  - {from: cron, to: xs, style: async, exit: right, entry: top, points: [[1890, 128]]}
+  - {from: xs, to: xapi, label: GET /Invoices}
+  - {from: xapi, to: xinv, label: upsert, style: data}
+legend: true

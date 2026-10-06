@@ -1,0 +1,17 @@
+{
+  "name": "cintelis-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "check:scoping": "node scripts/check-scoping.js"
+  },
+  "dependencies": {
+    "@cloudflare/puppeteer": "^0.0.14",
+    "marked": "^13.0.3"
+  },
+  "devDependencies": {
+    "wrangler": "^4.59.2"
+  }
+}

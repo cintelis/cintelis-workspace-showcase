@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<title>Cintelis Workspace</title>
+<meta name="description" content="Cintelis Workspace — CRM, outreach, project management, sprint planning, documentation wiki, and team collaboration platform.">
+<meta name="theme-color" content="#1A1A1A">
+<meta name="application-name" content="Cintelis Workspace">
+<meta name="robots" content="noindex, nofollow">
+<!-- Open Graph (login/landing page) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cintelis Workspace — Projects & Spaces">
+<meta property="og:description" content="Plan, build, document, and collaborate. Agile project management with sprints, kanban boards, roadmaps, and a built-in documentation wiki.">
+<meta property="og:image" content="https://projects.cintelis.ai/OG_image.png">
+<meta property="og:url" content="https://projects.cintelis.ai/">
+<meta property="og:site_name" content="Cintelis Workspace">
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Cintelis Workspace — Projects & Spaces">
+<meta name="twitter:description" content="Agile project management, sprint planning, and documentation wiki for teams.">
+<meta name="twitter:image" content="https://projects.cintelis.ai/OG_image.png">
+<!-- Apple -->
+<meta name="apple-mobile-web-app-title" content="Workspace">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Geist+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/dashboard.css">
+<link rel="stylesheet" href="/crm-ui.css">
+<!-- QR generator (used by Account → Enable MFA). Pure client-side, ~5KB. -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<!-- Markdown rendering for Tasks descriptions and comments. -->
+<script src="https://cdn.jsdelivr.net/npm/marked@13.0.3/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.7/dist/purify.min.js"></script>
+<!-- Mermaid diagrams inside markdown (```mermaid code blocks). -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script src="/login-bg.js" defer></script>
+<script src="/attachment-preview.js" defer></script>
+</head>
+<body>
+<div id="login">
+  <div class="login-card">
+    <div class="login-logo" id="login-logo-day">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 40" fill="none" width="192" height="32" aria-label="Cintelis AI"><g fill="none" transform="translate(2 4) scale(0.2667)"><path d="M93.71 31.72 A44 44 0 1 0 93.71 88.28" stroke="#0F1114" stroke-width="14"/><path d="M93.71 31.72 A44 44 0 0 0 66.12 16.43" stroke="#5B7CFA" stroke-width="14"/></g><text x="48" y="27" font-family="'Plus Jakarta Sans',sans-serif" font-weight="700" font-size="19" fill="#0F0F0F" letter-spacing="-0.2">Cintelis AI</text></svg>
+    </div>
+    <div class="login-logo" id="login-logo-night" style="display:none">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 40" fill="none" width="192" height="32" aria-label="Cintelis AI"><g fill="none" transform="translate(2 4) scale(0.2667)"><path d="M93.71 31.72 A44 44 0 1 0 93.71 88.28" stroke="#E7E8EA" stroke-width="14"/><path d="M93.71 31.72 A44 44 0 0 0 66.12 16.43" stroke="#5B7CFA" stroke-width="14"/></g><text x="48" y="27" font-family="'Plus Jakarta Sans',sans-serif" font-weight="700" font-size="19" fill="#FFFFFF" letter-spacing="-0.2">Cintelis AI</text></svg>
+    </div>
+    <div class="login-sub">Customer Onboarding</div>
+    <label>Email</label>
+    <input id="l-user" type="text" placeholder="you@example.com" autocomplete="username">
+    <label>Password</label>
+    <input id="l-pass" type="password" placeholder="********" autocomplete="current-password">
+    <div class="login-err" id="l-err">Invalid credentials. Try again.</div>
+    <button class="login-btn" type="button" onclick="doLogin()">
+      <span>Sign In</span>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path class="ico-arr-head" d="m12 5 7 7-7 7"/>
+        <path class="ico-arr-head" d="M14 12h5"/>
+        <path d="M5 12h9"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<div id="app">
+  <div class="topbar" id="topbar">
+    <div class="topbar-left">
+      <span class="topbar-logo" onclick="nav(typeof defaultSection === 'function' ? defaultSection() : 'overview')" title="Cintelis" aria-label="Cintelis"><svg width="26" height="26" viewBox="0 0 120 120" aria-hidden="true"><g fill="none" stroke-linecap="butt"><path d="M93.71 31.72 A44 44 0 1 0 93.71 88.28" stroke="#E7E8EA" stroke-width="14"/><path d="M93.71 31.72 A44 44 0 0 0 66.12 16.43" stroke="#5B7CFA" stroke-width="14"/></g></svg><span class="topbar-logo-text">Cintelis</span></span>
+    </div>
+    <div class="topbar-search" id="topbar-search">
+      <svg class="topbar-search-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor"/></svg>
+      <input id="global-search-input" type="search" placeholder="Search issues, pages, contacts…  ( / )" autocomplete="off" oninput="onGlobalSearchInput(this.value)" onfocus="onGlobalSearchFocus()">
+      <div class="global-search-dropdown" id="global-search-dropdown"></div>
+    </div>
+    <button class="topbar-create-btn" id="topbar-create" type="button" onclick="topbarCreate()" style="display:none">+ Create</button>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm mobile-only" type="button" onclick="openMobileMenu()">More</button>
+      <button class="topbar-bell" id="inbox-bell" type="button" onclick="toggleInbox(event)" title="Notifications" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a6 6 0 0 0-6 6v3.5l-1.7 3.4A1 1 0 0 0 5.2 16h13.6a1 1 0 0 0 .9-1.1L18 11.5V8a6 6 0 0 0-6-6zm-2 16a2 2 0 1 0 4 0h-4z" fill="currentColor"/></svg>
+        <span class="topbar-bell-badge" id="inbox-badge" style="display:none">0</span>
+      </button>
+      <button class="icon-btn icon-btn-ghost" id="theme-toggle" type="button" onclick="toggleTheme()" title="Toggle light/dark theme" aria-label="Toggle theme"></button>
+      <button class="topbar-avatar-btn" type="button" onclick="nav('account')" title="My Account" id="topbar-avatar"></button>
+    </div>
+  </div>
+  <div class="page-title" id="page-title" style="display:none">Overview</div>
+  <div class="layout">
+    <aside class="sidebar">
+      <nav class="s-nav">
+        <div class="nav-group-label" id="nav-customer-name" style="display:none"></div>
+        <button class="nav-item active" id="nav-overview" type="button" onclick="nav('overview')">📊 Overview</button>
+        <div class="nav-divider" id="nav-outreach-divider"></div>
+        <div class="nav-group-label" id="nav-outreach-label">Outreach</div>
+        <button class="nav-item" id="nav-templates" type="button" onclick="nav('templates')">📝 Templates</button>
+        <button class="nav-item" id="nav-contacts" type="button" onclick="nav('contacts')">👤 Contacts</button>
+        <button class="nav-item" id="nav-lists" type="button" onclick="nav('lists')">📋 Lists</button>
+        <button class="nav-item" id="nav-campaigns" type="button" onclick="nav('campaigns')">📣 Campaigns</button>
+        <button class="nav-item" id="nav-logs" type="button" onclick="nav('logs')">📨 Sent Log</button>
+        <button class="nav-item" id="nav-unsubs" type="button" onclick="nav('unsubs')">🚫 Unsubscribes</button>
+        <div class="nav-divider" id="nav-crm-divider"></div>
+        <div class="nav-group-label" id="nav-crm-label">CRM</div>
+        <button class="nav-item" id="nav-workspace" type="button" onclick="nav('workspace')">🏠 Workspace</button>
+        <button class="nav-item nav-item-badged" id="nav-crm_tasks" type="button" onclick="nav('crm_tasks')">
+          ✅ Tasks
+          <span id="fu-badge" class="nav-badge" style="display:none" title="Overdue or due today"></span>
+        </button>
+        <button class="nav-item" id="nav-companies" type="button" onclick="nav('companies')">🏢 Companies</button>
+        <button class="nav-item" id="nav-pipeline" type="button" onclick="nav('pipeline')">🤝 Deals</button>
+        <div class="nav-divider" id="nav-tasks-divider"></div>
+        <div class="nav-group-label" id="nav-tasks-label">Tasks</div>
+        <button class="nav-item" id="nav-projects" type="button" onclick="nav('projects')">📋 Projects</button>
+        <div class="nav-divider" id="nav-docs-divider"></div>
+        <div class="nav-group-label" id="nav-docs-label">Docs</div>
+        <button class="nav-item" id="nav-docs" type="button" onclick="nav('docs')">📄 Spaces</button>
+        <div class="nav-divider" id="nav-tools-divider"></div>
+        <div class="nav-group-label" id="nav-tools-label">Tools</div>
+        <button class="nav-item" id="nav-tools_build_margin" type="button" onclick="nav('tools_build_margin')">📈 Build Margin</button>
+        <button class="nav-item" id="nav-tools_quoting" type="button" onclick="nav('tools_quoting')">🧮 Quoting</button>
+        <button class="nav-item" id="nav-linkedin" type="button" onclick="nav('linkedin')">🔎 LinkedIn Ads</button>
+        <button class="nav-item" id="nav-linkedin_posts" type="button" onclick="nav('linkedin_posts')">📝 LinkedIn Posts</button>
+        <button class="nav-item" id="nav-roadmap" type="button" onclick="nav('roadmap')" style="display:none">📈 Roadmap</button>
+        <button class="nav-item" id="nav-billing" type="button" onclick="nav('billing')" style="display:none">🧮 Contract &amp; Billing</button>
+        <div class="nav-divider" id="nav-settings-divider"></div>
+        <div class="nav-group-label" id="nav-settings-label">Settings</div>
+        <button class="nav-item" id="nav-account" type="button" onclick="nav('account')">⚙️ My Account</button>
+        <button class="nav-item" id="nav-users" type="button" onclick="nav('users')" style="display:none">👥 Users</button>
+        <button class="nav-item" id="nav-integrations" type="button" onclick="nav('integrations')" style="display:none">🔌 Integrations</button>
+        <button class="nav-item" id="nav-feature-settings" type="button" onclick="nav('feature_settings')" style="display:none">🎛️ Feature visibility</button>
+        <button class="nav-item" id="nav-api-tokens" type="button" onclick="nav('api_tokens')" style="display:none">🔑 API Tokens</button>
+        <button class="nav-item" id="nav-customers" type="button" onclick="nav('customers')" style="display:none">🏢 Customers</button>
+      </nav>
+      <div class="s-footer">
+        <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center" onclick="doLogout()">Sign Out</button>
+      </div>
+    </aside>
+    <div class="sidebar-splitter" id="sidebar-splitter" role="separator" aria-orientation="vertical" aria-label="Resize sidebar" title="Drag to resize · double-click to reset" onmousedown="startSidebarDrag(event)" ondblclick="resetSidebarWidth()"><span></span></div>
+    <div class="main">
+      <div class="content" id="content"></div>
+    </div>
+  </div>
+
+  <nav class="mobile-tabbar" id="mobile-tabbar">
+    <!-- Customer tabs. Hidden for internal staff, who get the four below. -->
+    <button class="mobile-tab" id="tab-projects" type="button" onclick="nav('projects')" style="display:none">Projects</button>
+    <button class="mobile-tab" id="tab-docs" type="button" onclick="nav('docs')" style="display:none">Spaces</button>
+    <button class="mobile-tab" id="tab-roadmap" type="button" onclick="nav('roadmap')" style="display:none">Roadmap</button>
+    <button class="mobile-tab" id="tab-billing" type="button" onclick="nav('billing')" style="display:none">Contract</button>
+    <button class="mobile-tab active" id="tab-workspace" type="button" onclick="nav('workspace')">Home</button>
+    <button class="mobile-tab" id="tab-contacts" type="button" onclick="nav('contacts')">Contacts</button>
+    <button class="mobile-tab" id="tab-pipeline" type="button" onclick="nav('pipeline')">Deals</button>
+    <button class="mobile-tab mobile-tab-badged" id="tab-crm_tasks" type="button" onclick="nav('crm_tasks')">
+      Tasks
+      <span id="mobile-fu-badge" class="nav-badge" style="display:none"></span>
+    </button>
+    <button class="mobile-tab" id="tab-more" type="button" onclick="openMobileMenu()">More</button>
+  </nav>
+</div>
+
+<div class="mobile-sheet-bg" id="mobile-sheet-bg" onclick="closeMobileMenu()"></div>
+<div class="mobile-sheet" id="mobile-sheet">
+  <div class="mobile-sheet-head">
+    <div>
+      <div class="mobile-sheet-title">More</div>
+      <div class="mobile-sheet-sub">Secondary sections and account actions</div>
+    </div>
+    <button class="modal-close" type="button" onclick="closeMobileMenu()">x</button>
+  </div>
+  <div class="mobile-sheet-body">
+    <button class="mobile-sheet-item" id="more-overview" type="button" onclick="closeMobileMenu();nav('overview')">📊 Overview</button>
+    <button class="mobile-sheet-item" id="more-companies" type="button" onclick="closeMobileMenu();nav('companies')">🏢 Companies</button>
+    <button class="mobile-sheet-item" id="more-templates" type="button" onclick="closeMobileMenu();nav('templates')">📝 Templates</button>
+    <button class="mobile-sheet-item" id="more-lists" type="button" onclick="closeMobileMenu();nav('lists')">📋 Lists</button>
+    <button class="mobile-sheet-item" id="more-campaigns" type="button" onclick="closeMobileMenu();nav('campaigns')">📣 Campaigns</button>
+    <button class="mobile-sheet-item" id="more-logs" type="button" onclick="closeMobileMenu();nav('logs')">📨 Sent Log</button>
+    <button class="mobile-sheet-item" id="more-unsubs" type="button" onclick="closeMobileMenu();nav('unsubs')">🚫 Unsubscribes</button>
+    <button class="mobile-sheet-item" id="more-projects" type="button" onclick="closeMobileMenu();nav('projects')">📋 Projects</button>
+    <button class="mobile-sheet-item" id="more-docs" type="button" onclick="closeMobileMenu();nav('docs')">📄 Docs</button>
+    <button class="mobile-sheet-item" id="more-tools_build_margin" type="button" onclick="closeMobileMenu();nav('tools_build_margin')">📈 Build Margin</button>
+    <button class="mobile-sheet-item" id="more-tools_quoting" type="button" onclick="closeMobileMenu();nav('tools_quoting')">🧮 Quoting</button>
+    <button class="mobile-sheet-item" id="more-linkedin" type="button" onclick="closeMobileMenu();nav('linkedin')">🔎 LinkedIn Ads</button>
+    <button class="mobile-sheet-item" id="more-linkedin_posts" type="button" onclick="closeMobileMenu();nav('linkedin_posts')">📝 LinkedIn Posts</button>
+    <button class="mobile-sheet-item" id="more-roadmap" type="button" onclick="closeMobileMenu();nav('roadmap')" style="display:none">📈 Roadmap</button>
+    <button class="mobile-sheet-item" id="more-billing" type="button" onclick="closeMobileMenu();nav('billing')" style="display:none">🧮 Contract &amp; Billing</button>
+    <button class="mobile-sheet-item" id="more-account" type="button" onclick="closeMobileMenu();nav('account')">⚙️ My Account</button>
+    <button class="mobile-sheet-item" id="more-users" type="button" onclick="closeMobileMenu();nav('users')" style="display:none">👥 Users</button>
+    <button class="mobile-sheet-item" id="more-integrations" type="button" onclick="closeMobileMenu();nav('integrations')" style="display:none">🔌 Integrations</button>
+    <button class="mobile-sheet-item" id="more-feature-settings" type="button" onclick="closeMobileMenu();nav('feature_settings')" style="display:none">🎛️ Feature visibility</button>
+    <button class="mobile-sheet-item" id="more-api-tokens" type="button" onclick="closeMobileMenu();nav('api_tokens')" style="display:none">🔑 API Tokens</button>
+    <button class="mobile-sheet-item" id="more-customers" type="button" onclick="closeMobileMenu();nav('customers')" style="display:none">🏢 Customers</button>
+    <button class="mobile-sheet-item" type="button" onclick="closeMobileMenu();refreshCurrent()">Refresh Current Page</button>
+    <button class="mobile-sheet-item mobile-sheet-item-danger" type="button" onclick="doLogout()">Sign Out</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal"><div class="modal modal-lg" id="modal-inner"></div></div>
+
+<div class="drawer-bg" id="drawer-bg" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div>
+      <div id="drawer-name" style="font-family:var(--font-head);font-size:18px;font-weight:700"></div>
+      <div id="drawer-company" style="font-size:13px;color:var(--muted2);margin-top:2px"></div>
+      <a id="drawer-open-record" class="text-sm" style="display:none;cursor:pointer;color:var(--cyan);margin-top:4px;display:inline-block">Open full record &rarr;</a>
+    </div>
+    <button class="modal-close" type="button" onclick="closeDrawer()" style="font-size:22px">x</button>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+</div>
+
+<script src="/dialogs.js" defer></script>
+<script src="/app.js" defer></script>
+<script src="/tasks-ui.js" defer></script>
+<script src="/sprints-ui.js" defer></script>
+<script src="/roadmap-ui.js" defer></script>
+<script src="/docs-ui.js" defer></script>
+<script src="/notifications-ui.js" defer></script>
+<script src="/integrations-ui.js" defer></script>
+<script src="/attachments-ui.js" defer></script>
+<script src="/linked-items-ui.js" defer></script>
+<script src="/feature-settings-ui.js" defer></script>
+<script src="/api-tokens-ui.js" defer></script>
+<script src="/toasts.js" defer></script>
+<script src="/markdown-toolbar.js" defer></script>
+<script src="/empty-states.js" defer></script>
+<script src="/dashboard-widgets.js" defer></script>
+<script src="/global-search.js" defer></script>
+<script src="/linkedin-ui.js" defer></script>
+<script src="/customers-ui.js" defer></script>
+<script src="/billing-ui.js" defer></script>
+<script src="/xero-ui.js" defer></script>
+<script src="/roadmap-page-ui.js" defer></script>
+<script src="/crm-views-ui.js" defer></script>
+<script src="/crm-tasks-ui.js" defer></script>
+<script src="/crm-companies-ui.js" defer></script>
+<script src="/crm-deals-ui.js" defer></script>
+<script src="/crm-record-ui.js" defer></script>
+<script src="/router.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+name: CI
+
+# This repo has no test suite, no linter and no build step, so CI cannot check
+# very much. What it can do is catch the two mistakes that actually reach
+# production here: a syntax error in a file nothing imports until runtime, and
+# a wrangler.toml or bundle that fails to build at all.
+#
+# Runs on pull requests and on main.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      # `npm ci` installs exactly what package-lock.json pins, so CI and a
+      # laptop cannot silently resolve different versions of wrangler.
+      - run: npm ci
+
+      # The frontend is plain <script defer> files sharing globals, so a typo
+      # in one of them throws at load and silently skips the rest of that file.
+      # That is exactly how docs-ui.js lost half its functions unnoticed.
+      - name: Syntax-check every JS file
+        run: |
+          set -euo pipefail
+          files=$(ls worker.js worker/*.js public/*.js)
+          for f in ${files}; do
+            node --check "${f}"
+          done
+          echo "checked $(echo "${files}" | wc -w) files"
+
+      # Builds the Worker bundle and validates wrangler.toml and its bindings
+      # without publishing anything. Needs no Cloudflare credentials, so it is
+      # safe on pull requests from forks.
+      - name: Build the Worker (dry run)
+        run: npx wrangler deploy --dry-run --outdir /tmp/worker-build
+
+      # Tenant isolation is enforced by convention: every query on a
+      # customer-owned table goes through worker/scope.js with a /*SCOPE*/
+      # marker. This fails the build on any query that bypasses it.
+      - name: Check customer scoping
+        run: npm run check:scoping
+
+      # Migrations are applied by hand and in order, and schema.sql is meant to
+      # be the full picture. Duplicate or out-of-order numbers are the failure
+      # mode that bites months later, on a fresh database.
+      - name: Check migration numbering
+        run: |
+          set -euo pipefail
+          dupes=$(ls migrations/*.sql | sed -E 's|.*/([0-9]+)_.*|\1|' | sort | uniq -d)
+          if [ -n "${dupes}" ]; then
+            echo "::error::Duplicate migration numbers: ${dupes}"
+            exit 1
+          fi
+          echo "migration numbers are unique: $(ls migrations/*.sql | wc -l) files"
+
+      # An HTML typo here breaks the whole SPA, because load order in
+      # index.html is load-bearing: every <script defer> it lists must exist.
+      - name: Check index.html script references
+        run: |
+          set -euo pipefail
+          missing=0
+          for src in $(grep -oE '<script[^>]*src="/[^"]+"' public/index.html | sed -E 's|.*src="/||; s|"||'); do
+            if [ ! -f "public/${src}" ]; then
+              echo "::error::index.html references public/${src}, which does not exist"
+              missing=1
+            fi
+          done
+          [ "${missing}" = "0" ]
+          echo "all local script references resolve"
